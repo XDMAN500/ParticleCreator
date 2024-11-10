@@ -1,0 +1,33 @@
+# Particle Creator
+# Original format Made with <3 by Fumaz
+# Extended by Varmetek
+
+version: 1
+orientation:
+  offsetPositionX: 0.0 # Render particles to the left or right of center location
+  offsetPositionY: 5 # Render particles higher or lower than center location
+  offsetPositionZ: 0.0 # Closer or further from center location
+  drawRotationAboutX: 0
+  drawRotationAboutY: 0
+  drawRotationAboutZ:  0
+  canvasCenterX: 0
+  canvasCenterY: 0
+  particleGap: 0.2
+
+palette:
+  X: dust|#FFFF00
+
+canvas:
+  - OOOOOOOOOOOOOOOOOOOOOOO
+  - OOOOOOOOOOOOOOOOOOOOOOO
+  - OOOOXXXXXOOOOOXXXXXOOOO
+  - OOOXXOOOOOOOOXXOOOOOOOO
+  - OOOXOOOOOOOOOXOOOOOOOOO
+  - OOOXOOOOOOOOOXOOOOOOOOO
+  - OOOXOOOOXXXOOXOOOOXXXOO
+  - OOOXOOOOOOXOOXOOOOOOXOO
+  - OOOXOOOOOOXOOXOOOOOOXOO
+  - OOOXXOOOOXXOOXXOOOOXXOO
+  - OOOOXXXXXXOOOOXXXXXXOOO
+  - OOOOOOOOOOOOOOOOOOOOOOO
+  - OOOOOOOOOOOOOOOOOOOOOOO

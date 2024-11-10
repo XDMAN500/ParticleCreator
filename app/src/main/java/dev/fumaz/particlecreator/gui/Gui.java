@@ -8,6 +8,8 @@ import dev.fumaz.particlecreator.particle.ParticleType;
 import dev.fumaz.particlecreator.template.Cape;
 import dev.fumaz.particlecreator.template.Crown;
 import dev.fumaz.particlecreator.template.Template;
+import dev.fumaz.particlecreator.template.Text;
+import dev.fumaz.particlecreator.template.TextGG;
 import dev.fumaz.particlecreator.util.ExportsPhoenix;
 import dev.fumaz.particlecreator.util.SizedStack;
 
@@ -21,8 +23,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Dictionary;
@@ -39,14 +41,18 @@ public class Gui {
     private final static int PIXEL_SIZE = 30;
 
     private Project project = new Project();
-    private final List<Template> templates = Arrays.asList(new Cape(), new Crown());
+    private final List<Template> templates = Arrays.asList(new Cape(), new Crown(), new Text(), new TextGG());
     private final SizedStack<Action> undo = new SizedStack<>(250);
     private final SizedStack<Action> redo = new SizedStack<>(250);
     private final JColorChooser colorChooser = new JColorChooser(Color.BLACK);
+    private int pixelScale = PIXEL_SIZE;
 
     private Particle particle = new Particle(ParticleType.DUST, Color.BLACK);
     private Color background = Color.WHITE;
     private boolean running = true;
+
+    private JFrame frame;
+    private JPanel panel;
 
     public void show() {
         project.setParticleCanvas(new ParticleCanvas(WIDTH, HEIGHT));
@@ -61,8 +67,7 @@ public class Gui {
             6,
             0.2
         ));
-        JFrame frame = new JFrame("Particle Creator");
-        frame.setSize(WIDTH * PIXEL_SIZE+ PIXEL_SIZE, HEIGHT * PIXEL_SIZE + 80);
+        frame = new JFrame("Particle Creator");
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setResizable(false);
         frame.setFocusable(true);
@@ -70,14 +75,9 @@ public class Gui {
         JMenuBar jMenuBar = new JMenuBar();
 
 
-        JPanel panel = new JPanel();
-        panel.setPreferredSize(new Dimension(frame.getWidth()  - PIXEL_SIZE , frame.getHeight() - 80 ));
-
-        JPanel buttons = new JPanel();
-        buttons.setPreferredSize(new Dimension(frame.getWidth(), 50));
-
-        GridLayout layout = new GridLayout(1, 5);
-        buttons.setLayout(layout);
+        panel = new JPanel();
+        panel.setPreferredSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale , project.getParticleCanvas().getHeight() * pixelScale ));
+        panel.setSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale  , project.getParticleCanvas().getHeight() * pixelScale ));
 
         JButton particleButton = new JButton("Particle");
         particleButton.addActionListener(e -> {
@@ -120,7 +120,7 @@ public class Gui {
                 ExportsPhoenix.save(Gui.this.project, file);
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(frame, "An error occurred while saving the file!\nPlease send this to fumaz:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "An error occurred while saving the file!\nPlease send this to Varmetek:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -141,11 +141,8 @@ public class Gui {
             File file = chooser.getSelectedFile();
 
             try {
-
-                ParticleCanvas particleCanvas = new ParticleCanvas(WIDTH, HEIGHT);
                 Project newProject = ExportsPhoenix.load(file);
-                particleCanvas.copyFrom(newProject.getParticleCanvas());
-                newProject.setParticleCanvas(particleCanvas);
+                resize(newProject.getParticleCanvas().getWidth(), newProject.getParticleCanvas().getWidth(), pixelScale);
                 Gui.this.project = newProject;
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -161,64 +158,24 @@ public class Gui {
                 return;
             }
 
-            ParticleCanvas normalizedCanvas = new ParticleCanvas(WIDTH, HEIGHT);
             Project newProject = template.load();
-            normalizedCanvas.copyFrom(newProject.particleCanvas);
-            newProject.setParticleCanvas(normalizedCanvas);
+            resize(newProject.getParticleCanvas().getWidth(), newProject.getParticleCanvas().getWidth(), pixelScale);
             Gui.this.project = newProject;
-
         });
 
-        JFrame dialogFrame = new JFrame();
-        JDialog dialogBox = new JDialog(dialogFrame, "Dialog Example", true);
-        dialogBox.setSize(new Dimension(300, 300));
 
-        JPanel dialogPanel = new JPanel();
-        dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.Y_AXIS));
-
-        Dictionary<Integer, JLabel> labelTable =  new Hashtable<>(Map.of(10, new JLabel("10"), 40, new JLabel("40")));
-        JLabel widthLabel = new JLabel("Width");
-        JLabel heightLabel = new JLabel("height");
-        JSlider widthSlider = new JSlider(10,40);
-        widthSlider.setLabelTable(labelTable);
-        JSlider heightSlider = new JSlider(10,40);
-        heightSlider.addChangeListener( e -> {
-            heightLabel.setText("Height %d".formatted(heightSlider.getValue()));
-            heightLabel.updateUI();
-        });
-        widthSlider.addChangeListener( e -> {
-            widthLabel.setText("Width %d".formatted(widthSlider.getValue()));
-            widthLabel.updateUI();
-        });
-        heightSlider.setLabelTable(labelTable);
-        dialogPanel.add(widthLabel);
-        dialogPanel.add(widthSlider);
-        dialogPanel.add(heightLabel);
-        dialogPanel.add(heightSlider);
-        dialogBox.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent we) {
-                clear();
-                frame.setSize(widthSlider.getValue() * PIXEL_SIZE+ PIXEL_SIZE, heightSlider.getValue() * PIXEL_SIZE + 80);
-                frame.setSize(widthSlider.getValue() * PIXEL_SIZE+ PIXEL_SIZE, heightSlider.getValue() * PIXEL_SIZE + 80);
-                panel.setSize(new Dimension(frame.getWidth()  - PIXEL_SIZE , frame.getHeight() - 80 ));
-                //setLabel("Thwarted user attempt to close window.");
-            }
-        });
-        dialogBox.add(dialogPanel);
-
-
-
-        /*JButton settingButton = new JButton("Setting");
+        JButton settingButton = new JButton("Setting");
         settingButton.addActionListener(e -> {
-            dialogBox.setVisible(true);
-        });*/
+            JDialog dialog = creatingCanvasDialog();
+            dialog.setVisible(true);
+        });
 
         jMenuBar.add(openButton);
         jMenuBar.add(saveButton);
         jMenuBar.add(particleButton);
         jMenuBar.add(colorButton);
         jMenuBar.add(templateButton);
-        //jMenuBar.add(settingButton);
+        jMenuBar.add(settingButton);
         frame.setJMenuBar(jMenuBar);
 
         //frame.add(buttons, BorderLayout.NORTH);
@@ -237,10 +194,10 @@ public class Gui {
                 int x = e.getX();
                 int y = e.getY();
 
-                int pixelX = x / PIXEL_SIZE;
-                int pixelY = y / PIXEL_SIZE;
+                int pixelX = x / pixelScale;
+                int pixelY = y / pixelScale;
 
-                if (pixelX < 0 || pixelY < 0 || pixelX >= WIDTH || pixelY >= HEIGHT) {
+                if (pixelX < 0 || pixelY < 0 || pixelX >= project.getParticleCanvas().getWidth() || pixelY >= project.getParticleCanvas().getHeight()) {
                     return;
                 }
 
@@ -257,6 +214,7 @@ public class Gui {
             }
         });
 
+        frame.pack();
         panel.setFocusable(true);
         panel.setRequestFocusEnabled(true);
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK), "clear");
@@ -344,10 +302,10 @@ public class Gui {
                 int x = point.x - frame.getLocation().x;
                 int y = point.y - frame.getLocation().y;
 
-                int pixelX = x / PIXEL_SIZE;
-                int pixelY = (y - 80) / PIXEL_SIZE;
+                int pixelX = x / pixelScale;
+                int pixelY = (y - 80) / pixelScale;
 
-                if (pixelX < 0 || pixelY < 0 || pixelX >= WIDTH || pixelY >= HEIGHT) {
+                if (pixelX < 0 || pixelY < 0 || pixelX >= project.getParticleCanvas().getWidth() || pixelY >= project.getParticleCanvas().getHeight()) {
                     return;
                 }
 
@@ -377,8 +335,8 @@ public class Gui {
     }
 
     private void update(Graphics graphics) {
-        for (int y = 0; y < HEIGHT; y++) {
-            for (int x = 0; x < WIDTH; x++) {
+        for (int y = 0; y < project.getParticleCanvas().getHeight(); y++) {
+            for (int x = 0; x < project.getParticleCanvas().getWidth(); x++) {
                 Particle particle = project.getParticleCanvas().getSymbol(x, y);
                 Color color = particle == null ? null : particle.getColor();
                 boolean empty = particle == null;
@@ -388,16 +346,16 @@ public class Gui {
                 }
 
                 graphics.setColor(color);
-                graphics.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+                graphics.fillRect(x * pixelScale, y * pixelScale, pixelScale, pixelScale);
                 graphics.setColor(color == Color.black ? Color.white : Color.black);
-                graphics.drawRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+                graphics.drawRect(x * pixelScale, y * pixelScale, pixelScale, pixelScale);
             }
         }
     }
 
     private void clear() {
-        for (int y = 0; y < HEIGHT; y++) {
-            for (int x = 0; x < WIDTH; x++) {
+        for (int y = 0; y < project.getParticleCanvas().getHeight(); y++) {
+            for (int x = 0; x < project.getParticleCanvas().getWidth(); x++) {
                 project.getParticleCanvas().setSymbol(x,y, null);
             }
         }
@@ -417,6 +375,108 @@ public class Gui {
         dialog.show();
 
         return colorChooser.getColor();
+    }
+
+    private void resize(int width, int height, int scale) {
+        ParticleCanvas canvas = new ParticleCanvas(width, height);
+        canvas.copyFrom(project.getParticleCanvas());
+        clear();
+        project.setParticleCanvas(canvas);
+        this.pixelScale = scale;
+        panel.setPreferredSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale  , project.getParticleCanvas().getHeight() * pixelScale ));
+        panel.setSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale , project.getParticleCanvas().getHeight() * pixelScale ));
+        frame.pack();
+    }
+
+    private JDialog creatingCanvasDialog() {
+
+        JDialog dialogBox = new JDialog(frame, "Dialog Example", true);
+        dialogBox.setSize(new Dimension(300, 300));
+        dialogBox.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+        Object[] options = new Object[] {"Apply", "Cancel"};
+        final JOptionPane optionPane = new JOptionPane(
+            "",
+            JOptionPane.PLAIN_MESSAGE,
+            JOptionPane.YES_NO_OPTION,
+            null,
+            options,
+            options[0]
+        );
+
+        JPanel dialogPanel = new JPanel();
+        dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.Y_AXIS));
+
+
+
+        JLabel widthLabel = new JLabel("Width");
+        JLabel heightLabel = new JLabel("Height");
+        JLabel scaleLabel = new JLabel("Scale");
+
+        JSlider widthSlider = new JSlider(10, 120);
+        JSlider heightSlider = new JSlider(10, 120);
+        JSlider scaleSlider = new JSlider(4, 32);
+        Dictionary<Integer, JLabel> widthLabelTable =  new Hashtable<>(Map.of(
+            widthSlider.getMinimum(), new JLabel(String.valueOf(widthSlider.getMinimum())),
+            widthSlider.getMaximum(), new JLabel(String.valueOf(widthSlider.getMaximum()))
+        ));
+        Dictionary<Integer, JLabel> heightLabelTable = new Hashtable<>(Map.of(
+            heightSlider.getMinimum(), new JLabel(String.valueOf(heightSlider.getMinimum())),
+            heightSlider.getMaximum(), new JLabel(String.valueOf(heightSlider.getMaximum()))
+        ));
+        Dictionary<Integer, JLabel> scaleLabelTable =  new Hashtable<>(Map.of(
+            scaleSlider.getMinimum(), new JLabel(String.valueOf(scaleSlider.getMinimum())),
+            scaleSlider.getMaximum(), new JLabel(String.valueOf(scaleSlider.getMaximum()))
+        ));
+        heightSlider.addChangeListener( e -> {
+            heightLabel.setText("Height %d".formatted(heightSlider.getValue()));
+            heightLabel.updateUI();
+        });
+        widthSlider.addChangeListener( e -> {
+            widthLabel.setText("Width %d".formatted(widthSlider.getValue()));
+            widthLabel.updateUI();
+        });
+
+        scaleSlider.addChangeListener( e -> {
+            scaleLabel.setText("Scale %d".formatted(scaleSlider.getValue()));
+            scaleLabel.updateUI();
+        });
+
+        heightSlider.setLabelTable(widthLabelTable);
+        widthSlider.setLabelTable(heightLabelTable);
+        scaleSlider.setLabelTable(scaleLabelTable);
+        widthSlider.setPaintLabels(true);
+        heightSlider.setPaintLabels(true);
+        scaleSlider.setPaintLabels(true);
+        widthSlider.setValue(project.getParticleCanvas().getWidth());
+        heightSlider.setValue(project.getParticleCanvas().getHeight());
+        scaleSlider.setValue(pixelScale);
+        dialogPanel.add(widthLabel);
+        dialogPanel.add(widthSlider);
+        dialogPanel.add(heightLabel);
+        dialogPanel.add(heightSlider);
+        dialogPanel.add(scaleLabel);
+        dialogPanel.add(scaleSlider);
+
+        optionPane.addPropertyChangeListener(
+            new PropertyChangeListener() {
+                public void propertyChange(PropertyChangeEvent e) {
+                    String prop = e.getPropertyName();
+
+                    if (dialogBox.isVisible()
+                            && (e.getSource() == optionPane)
+                            && (prop.equals(JOptionPane.VALUE_PROPERTY))) {
+                        if (e.getNewValue().equals(options[0])) {
+                            resize(widthSlider.getValue(), heightSlider.getValue(), scaleSlider.getValue());
+                        }
+                        dialogBox.setVisible(false);
+                    }
+                }
+            });
+        dialogPanel.add(optionPane);
+        dialogBox.add(dialogPanel);
+        dialogBox.pack();
+        return dialogBox;
     }
 
 }
