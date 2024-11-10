@@ -3,11 +3,75 @@
  */
 package org.example;
 
+import dev.fumaz.particlecreator.gui.Project;
+import dev.fumaz.particlecreator.particle.Particle;
+import dev.fumaz.particlecreator.particle.ParticleCanvas;
+import dev.fumaz.particlecreator.particle.ParticleOrientation;
+import dev.fumaz.particlecreator.particle.ParticleType;
+import dev.fumaz.particlecreator.util.ExportsPhoenix;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.awt.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 class AppTest {
-    @Test void appHasAGreeting() {
-       // App classUnderTest = new App();
-        //assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+
+
+    @Test
+    void save() {
+        Project project = new Project();
+        project.setParticleOrientation(new ParticleOrientation(
+            0.0,
+            2.2,
+            0.0,
+            90,
+            0,
+            0,
+            8,
+            6,
+            0.2
+        ));
+        Particle particle = new Particle(ParticleType.DUST, Color.BLACK);
+
+        ParticleCanvas canvas = new ParticleCanvas(5, 5);
+        canvas.setSymbol(2, 2, particle);
+        canvas.setSymbol(2, 3, particle);
+        canvas.setSymbol(2, 4, particle);
+
+        project.setParticleCanvas(canvas);
+
+        try {
+            File file = new File("testfile.yaml");
+            ExportsPhoenix.save(project, new FileOutputStream(file));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    void load() {
+        Project project = new Project();
+
+        try {
+            project = ExportsPhoenix.load(this.getClass().getClassLoader().getResourceAsStream("particles/crown.yml"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Assertions.assertEquals(0.0, project.getParticleOrientation().getOffsetPositionX());
+        Assertions.assertEquals(2.2, project.getParticleOrientation().getOffsetPositionY());
+        Assertions.assertEquals(0.0, project.getParticleOrientation().getOffsetPositionZ());
+        Assertions.assertEquals(90.0, project.getParticleOrientation().getDrawRotationAboutX());
+        Assertions.assertEquals(0.0, project.getParticleOrientation().getDrawRotationAboutY());
+        Assertions.assertEquals(0.0, project.getParticleOrientation().getDrawRotationAboutZ());
+        Assertions.assertEquals(8.0, project.getParticleOrientation().getCanvasCenterX());
+        Assertions.assertEquals(6.0, project.getParticleOrientation().getCanvasCenterY());
+        Assertions.assertEquals(0.2, project.getParticleOrientation().getParticleGap());
+
+        Assertions.assertEquals(ParticleType.DUST, project.getParticleCanvas().getSymbol(0,0).getType());
+        Assertions.assertNull(project.getParticleCanvas().getSymbol(1,0));
     }
 }

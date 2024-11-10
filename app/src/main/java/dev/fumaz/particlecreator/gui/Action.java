@@ -27,12 +27,12 @@ public class Action {
         return newParticle;
     }
 
-    public void undo(Particle[][] particles) {
-        particles[coordinate.getY()][coordinate.getX()] = oldParticle;
+    public void undo(Project project) {
+        project.getParticleCanvas().setSymbol(coordinate.getX(), coordinate.getY(), oldParticle);
     }
 
-    public void redo(Particle[][] particles) {
-        particles[coordinate.getY()][coordinate.getX()] = newParticle;
+    public void redo(Project project) {
+        project.getParticleCanvas().setSymbol(coordinate.getX(), coordinate.getY(), newParticle);
     }
 
 }

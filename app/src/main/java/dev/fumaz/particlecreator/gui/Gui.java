@@ -2,51 +2,33 @@ package dev.fumaz.particlecreator.gui;
 
 import dev.fumaz.particlecreator.Coordinate;
 import dev.fumaz.particlecreator.particle.Particle;
+import dev.fumaz.particlecreator.particle.ParticleCanvas;
+import dev.fumaz.particlecreator.particle.ParticleOrientation;
 import dev.fumaz.particlecreator.particle.ParticleType;
 import dev.fumaz.particlecreator.template.Cape;
-import dev.fumaz.particlecreator.template.CrescentWings;
-import dev.fumaz.particlecreator.template.DragonWings;
+import dev.fumaz.particlecreator.template.Crown;
 import dev.fumaz.particlecreator.template.Template;
-import dev.fumaz.particlecreator.template.Wings;
-import dev.fumaz.particlecreator.util.Exports;
+import dev.fumaz.particlecreator.util.ExportsPhoenix;
 import dev.fumaz.particlecreator.util.SizedStack;
 
-import javax.swing.AbstractAction;
-import javax.swing.JButton;
-import javax.swing.JColorChooser;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
+import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.GridLayout;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.Window;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class Gui {
 
@@ -55,27 +37,41 @@ public class Gui {
     private final static int WIDTH = 19;
     private final static int HEIGHT = 13;
     private final static int PIXEL_SIZE = 30;
-    private final static String CHARSET = "A B C D E F G H I J K L M N P Q R S T U V W X Y Z a b c d e f g h i j k l m n p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 ~ - = + < > . , { } ; ' : `";
 
-    private final Particle[][] pixels = new Particle[HEIGHT][WIDTH];
-    private final List<Template> templates = Arrays.asList(new Cape(), new Wings(), new CrescentWings(), new DragonWings());
+    private Project project = new Project();
+    private final List<Template> templates = Arrays.asList(new Cape(), new Crown());
     private final SizedStack<Action> undo = new SizedStack<>(250);
     private final SizedStack<Action> redo = new SizedStack<>(250);
     private final JColorChooser colorChooser = new JColorChooser(Color.BLACK);
 
-    private Particle particle = new Particle(ParticleType.REDSTONE, Color.BLACK);
+    private Particle particle = new Particle(ParticleType.DUST, Color.BLACK);
     private Color background = Color.WHITE;
     private boolean running = true;
 
     public void show() {
+        project.setParticleCanvas(new ParticleCanvas(WIDTH, HEIGHT));
+        project.setParticleOrientation(new ParticleOrientation(
+            0.0,
+            2.2,
+            0.0,
+            90,
+            0,
+            0,
+            8,
+            6,
+            0.2
+        ));
         JFrame frame = new JFrame("Particle Creator");
-        frame.setSize(WIDTH * PIXEL_SIZE, HEIGHT * PIXEL_SIZE + 80);
+        frame.setSize(WIDTH * PIXEL_SIZE+ PIXEL_SIZE, HEIGHT * PIXEL_SIZE + 80);
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setResizable(false);
         frame.setFocusable(true);
 
+        JMenuBar jMenuBar = new JMenuBar();
+
+
         JPanel panel = new JPanel();
-        panel.setPreferredSize(new Dimension(frame.getWidth(), frame.getHeight() - 80));
+        panel.setPreferredSize(new Dimension(frame.getWidth()  - PIXEL_SIZE , frame.getHeight() - 80 ));
 
         JPanel buttons = new JPanel();
         buttons.setPreferredSize(new Dimension(frame.getWidth(), 50));
@@ -98,9 +94,8 @@ public class Gui {
 
         JButton colorButton = new JButton("Color");
         colorButton.addActionListener(e -> {
-            particle = new Particle(ParticleType.REDSTONE, showColorPicker(frame));
+            particle = new Particle(ParticleType.DUST, showColorPicker(frame));
         });
-
         JButton saveButton = new JButton("Save");
         saveButton.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
@@ -122,7 +117,7 @@ public class Gui {
             }
 
             try {
-                Exports.save(pixels, getMappings(), file);
+                ExportsPhoenix.save(Gui.this.project, file);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "An error occurred while saving the file!\nPlease send this to fumaz:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -146,7 +141,12 @@ public class Gui {
             File file = chooser.getSelectedFile();
 
             try {
-                Exports.open(pixels, file);
+
+                ParticleCanvas particleCanvas = new ParticleCanvas(WIDTH, HEIGHT);
+                Project newProject = ExportsPhoenix.load(file);
+                particleCanvas.copyFrom(newProject.getParticleCanvas());
+                newProject.setParticleCanvas(particleCanvas);
+                Gui.this.project = newProject;
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "An error occurred while opening the file!\nPlease send this to fumaz:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -161,16 +161,67 @@ public class Gui {
                 return;
             }
 
-            template.load(pixels);
+            ParticleCanvas normalizedCanvas = new ParticleCanvas(WIDTH, HEIGHT);
+            Project newProject = template.load();
+            normalizedCanvas.copyFrom(newProject.particleCanvas);
+            newProject.setParticleCanvas(normalizedCanvas);
+            Gui.this.project = newProject;
+
         });
 
-        buttons.add(particleButton);
-        buttons.add(colorButton);
-        buttons.add(saveButton);
-        buttons.add(openButton);
-        buttons.add(templateButton);
+        JFrame dialogFrame = new JFrame();
+        JDialog dialogBox = new JDialog(dialogFrame, "Dialog Example", true);
+        dialogBox.setSize(new Dimension(300, 300));
 
-        frame.add(buttons, BorderLayout.NORTH);
+        JPanel dialogPanel = new JPanel();
+        dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.Y_AXIS));
+
+        Dictionary<Integer, JLabel> labelTable =  new Hashtable<>(Map.of(10, new JLabel("10"), 40, new JLabel("40")));
+        JLabel widthLabel = new JLabel("Width");
+        JLabel heightLabel = new JLabel("height");
+        JSlider widthSlider = new JSlider(10,40);
+        widthSlider.setLabelTable(labelTable);
+        JSlider heightSlider = new JSlider(10,40);
+        heightSlider.addChangeListener( e -> {
+            heightLabel.setText("Height %d".formatted(heightSlider.getValue()));
+            heightLabel.updateUI();
+        });
+        widthSlider.addChangeListener( e -> {
+            widthLabel.setText("Width %d".formatted(widthSlider.getValue()));
+            widthLabel.updateUI();
+        });
+        heightSlider.setLabelTable(labelTable);
+        dialogPanel.add(widthLabel);
+        dialogPanel.add(widthSlider);
+        dialogPanel.add(heightLabel);
+        dialogPanel.add(heightSlider);
+        dialogBox.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent we) {
+                clear();
+                frame.setSize(widthSlider.getValue() * PIXEL_SIZE+ PIXEL_SIZE, heightSlider.getValue() * PIXEL_SIZE + 80);
+                frame.setSize(widthSlider.getValue() * PIXEL_SIZE+ PIXEL_SIZE, heightSlider.getValue() * PIXEL_SIZE + 80);
+                panel.setSize(new Dimension(frame.getWidth()  - PIXEL_SIZE , frame.getHeight() - 80 ));
+                //setLabel("Thwarted user attempt to close window.");
+            }
+        });
+        dialogBox.add(dialogPanel);
+
+
+
+        /*JButton settingButton = new JButton("Setting");
+        settingButton.addActionListener(e -> {
+            dialogBox.setVisible(true);
+        });*/
+
+        jMenuBar.add(openButton);
+        jMenuBar.add(saveButton);
+        jMenuBar.add(particleButton);
+        jMenuBar.add(colorButton);
+        jMenuBar.add(templateButton);
+        //jMenuBar.add(settingButton);
+        frame.setJMenuBar(jMenuBar);
+
+        //frame.add(buttons, BorderLayout.NORTH);
         frame.add(panel, BorderLayout.SOUTH);
         frame.setVisible(true);
 
@@ -193,16 +244,16 @@ public class Gui {
                     return;
                 }
 
-                if (pixels[pixelY][pixelX] == null) {
+                if (project.getParticleCanvas().getSymbol(pixelX, pixelY) == null) {
                     if (p == null) {
                         return;
                     }
-                } else if (pixels[pixelY][pixelX].equals(p)) {
+                } else if (project.getParticleCanvas().getSymbol(pixelX, pixelY).equals(p)) {
                     return;
                 }
 
-                undo.push(new Action(new Coordinate(pixelX, pixelY), pixels[pixelY][pixelX], p));
-                pixels[pixelY][pixelX] = p;
+                undo.push(new Action(new Coordinate(pixelX, pixelY), project.getParticleCanvas().getSymbol(pixelX, pixelY), p));
+                project.getParticleCanvas().setSymbol(pixelX, pixelY, p);
             }
         });
 
@@ -254,7 +305,7 @@ public class Gui {
                 }
 
                 Action action = undo.pop();
-                action.undo(pixels);
+                action.undo(Gui.this.project);
                 redo.push(action);
             }
         });
@@ -267,7 +318,7 @@ public class Gui {
                 }
 
                 Action action = redo.pop();
-                action.redo(pixels);
+                action.redo(Gui.this.project);
                 undo.push(action);
             }
         });
@@ -300,7 +351,7 @@ public class Gui {
                     return;
                 }
 
-                Particle particle = pixels[pixelY][pixelX];
+                Particle particle = project.getParticleCanvas().getSymbol(pixelX, pixelY);
 
                 if (particle == null) {
                     return;
@@ -328,7 +379,7 @@ public class Gui {
     private void update(Graphics graphics) {
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) {
-                Particle particle = pixels[y][x];
+                Particle particle = project.getParticleCanvas().getSymbol(x, y);
                 Color color = particle == null ? null : particle.getColor();
                 boolean empty = particle == null;
 
@@ -347,69 +398,11 @@ public class Gui {
     private void clear() {
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) {
-                pixels[y][x] = null;
+                project.getParticleCanvas().setSymbol(x,y, null);
             }
         }
     }
 
-    private Set<Particle> getParticles() {
-        Set<Particle> particles = new HashSet<>();
-
-        for (int y = 0; y < HEIGHT; y++) {
-            for (int x = 0; x < WIDTH; x++) {
-                Particle particle = pixels[y][x];
-
-                if (particle == null) {
-                    continue;
-                }
-
-                particles.add(particle);
-            }
-        }
-
-        return particles;
-    }
-
-    private Map<Color, Particle> getLegend() {
-        Map<Color, Particle> legend = new HashMap<>();
-
-        getParticles().forEach(particle -> {
-            legend.put(particle.getColor(), particle);
-        });
-
-        return legend;
-    }
-
-    private Map<Particle, Integer> getParticlesAmounts() {
-        Map<Particle, Integer> particles = new HashMap<>();
-
-        for (int i = 0; i < WIDTH; i++) {
-            for (int j = 0; j < HEIGHT; j++) {
-                Particle particle = pixels[i][j];
-
-                if (particle == null) {
-                    continue;
-                }
-
-                particles.put(particle, particles.getOrDefault(particle, 0) + 1);
-            }
-        }
-
-        return particles;
-    }
-
-    private Map<Character, Particle> getMappings() {
-        Map<Character, Particle> mappings = new HashMap<>();
-        Iterator<Character> characters = Arrays.stream(CHARSET.split(" "))
-                .map(s -> s.charAt(0))
-                .iterator();
-
-        mappings.put('O', null);
-
-        getParticles().forEach(particle -> mappings.put(characters.next(), particle));
-
-        return mappings;
-    }
 
     private Color showColorPicker(JFrame frame) {
         colorChooser.setColor(particle.getColor());

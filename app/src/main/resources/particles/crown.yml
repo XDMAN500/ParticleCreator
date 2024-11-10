@@ -1,0 +1,33 @@
+# Particle Creator
+# Original format Made with <3 by Fumaz
+# Extended by Varmetek
+
+version: 1
+orientation:
+  offsetPositionX: 0.0
+  offsetPositionY: 2.2
+  offsetPositionZ: 0.0
+  drawRotationAboutX: 90
+  drawRotationAboutY: 0
+  drawRotationAboutZ:  0
+  canvasCenterX: 8
+  canvasCenterY: 6
+  particleGap: 0.2
+
+palette:
+  X: dust|#FF00FF
+
+canvas:
+  - XOOOOOOOOXOOOOOOOOX
+  - OOOOOOOOOOOOOOOOOOO
+  - OOOOOOOOOOOOOOOOOOO
+  - OOOOOOOOOOOOOOOOOOO
+  - OOOOOOOOXXXOOOOOOOO
+  - OOOOOOOXXOXXOOOOOOO
+  - XOOOOOOXOXOXOOOOOOX
+  - OOOOOOOXXOXXOOOOOOO
+  - OOOOOOOOXXXOOOOOOOO
+  - OOOOOOOOOOOOOOOOOOO
+  - OOOOOOOOOOOOOOOOOOO
+  - OOOOOOOOOOOOOOOOOOO
+  - XOOOOOOOOXOOOOOOOOX
