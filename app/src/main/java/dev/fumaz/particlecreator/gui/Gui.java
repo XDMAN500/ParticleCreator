@@ -74,14 +74,19 @@ public class Gui {
 
         JMenuBar jMenuBar = new JMenuBar();
 
-
         panel = new JPanel();
-        panel.setPreferredSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale , project.getParticleCanvas().getHeight() * pixelScale ));
-        panel.setSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale  , project.getParticleCanvas().getHeight() * pixelScale ));
+        panel.setPreferredSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale,
+                                             project.getParticleCanvas().getHeight() * pixelScale));
+        panel.setSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale,
+                                    project.getParticleCanvas().getHeight() * pixelScale));
 
         JButton particleButton = new JButton("Particle");
         particleButton.addActionListener(e -> {
-            ParticleType type = (ParticleType) JOptionPane.showInputDialog(frame, "Please note only REDSTONE particle can have colors.\nColors selected for other particles are purely aesthetic.", "Choose a particle", JOptionPane.INFORMATION_MESSAGE, null, ParticleType.values(), particle.getType());
+            ParticleType type = (ParticleType) JOptionPane.showInputDialog(frame,
+                                                                           "Please note only REDSTONE particle can have colors.\nColors selected for other particles are purely aesthetic.",
+                                                                           "Choose a particle",
+                                                                           JOptionPane.INFORMATION_MESSAGE, null,
+                                                                           ParticleType.values(), particle.getType());
 
             if (type == null) {
                 return;
@@ -120,7 +125,9 @@ public class Gui {
                 ExportsPhoenix.save(Gui.this.project, file);
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(frame, "An error occurred while saving the file!\nPlease send this to Varmetek:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame,
+                                              "An error occurred while saving the file!\nPlease send this to Varmetek:\n" + ex.getMessage(),
+                                              "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -142,17 +149,22 @@ public class Gui {
 
             try {
                 Project newProject = ExportsPhoenix.load(file);
-                resize(newProject.getParticleCanvas().getWidth(), newProject.getParticleCanvas().getWidth(), pixelScale);
+                resize(newProject.getParticleCanvas().getWidth(), newProject.getParticleCanvas().getWidth(),
+                       pixelScale);
                 Gui.this.project = newProject;
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(frame, "An error occurred while opening the file!\nPlease send this to fumaz:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame,
+                                              "An error occurred while opening the file!\nPlease send this to fumaz:\n" + ex.getMessage(),
+                                              "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         JButton templateButton = new JButton("Template");
         templateButton.addActionListener(e -> {
-            Template template = (Template) JOptionPane.showInputDialog(frame, null, "Choose Template", JOptionPane.INFORMATION_MESSAGE, null, templates.toArray(), templates.get(0));
+            Template template = (Template) JOptionPane.showInputDialog(frame, null, "Choose Template",
+                                                                       JOptionPane.INFORMATION_MESSAGE, null,
+                                                                       templates.toArray(), templates.get(0));
 
             if (template == null) {
                 return;
@@ -162,7 +174,6 @@ public class Gui {
             resize(newProject.getParticleCanvas().getWidth(), newProject.getParticleCanvas().getWidth(), pixelScale);
             Gui.this.project = newProject;
         });
-
 
         JButton settingButton = new JButton("Setting");
         settingButton.addActionListener(e -> {
@@ -209,7 +220,9 @@ public class Gui {
                     return;
                 }
 
-                undo.push(new Action(new Coordinate(pixelX, pixelY), project.getParticleCanvas().getSymbol(pixelX, pixelY), p));
+                undo.push(
+                    new Action(new Coordinate(pixelX, pixelY), project.getParticleCanvas().getSymbol(pixelX, pixelY),
+                               p));
                 project.getParticleCanvas().setSymbol(pixelX, pixelY, p);
             }
         });
@@ -217,13 +230,20 @@ public class Gui {
         frame.pack();
         panel.setFocusable(true);
         panel.setRequestFocusEnabled(true);
-        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK), "clear");
-        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_H, KeyEvent.CTRL_DOWN_MASK), "help");
-        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK), "legend");
-        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK), "undo");
-        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK), "redo");
-        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK), "background");
-        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_J, KeyEvent.CTRL_DOWN_MASK), "pick");
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK), "clear");
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_H, KeyEvent.CTRL_DOWN_MASK), "help");
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK), "legend");
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK), "undo");
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK), "redo");
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_B, KeyEvent.CTRL_DOWN_MASK), "background");
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_J, KeyEvent.CTRL_DOWN_MASK), "pick");
 
         panel.getActionMap().put("clear", new AbstractAction() {
             @Override
@@ -236,15 +256,16 @@ public class Gui {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JOptionPane.showMessageDialog(frame, "Particle Creator " + VERSION + "\n" +
-                        "Made with <3 by Fumaz\n\n" +
-                        "CTRL + H - Shows this message\n" +
-                        "CTRL + C - Clears the board\n" +
-                        "CTRL + B - Change background color\n" +
-                        "CTRL + J - Pick color under cursor\n" +
-                        "CTRL + Z - Undo your last action\n" +
-                        "CTRL + Shift + Z - Redo your last action\n" +
-                        "Left Click - Colors a pixel\n" +
-                        "Right Click - Erases a pixel", "Help", JOptionPane.INFORMATION_MESSAGE);
+                                                         "Made with <3 by Fumaz\n\n" +
+                                                         "CTRL + H - Shows this message\n" +
+                                                         "CTRL + C - Clears the board\n" +
+                                                         "CTRL + B - Change background color\n" +
+                                                         "CTRL + J - Pick color under cursor\n" +
+                                                         "CTRL + Z - Undo your last action\n" +
+                                                         "CTRL + Shift + Z - Redo your last action\n" +
+                                                         "Left Click - Colors a pixel\n" +
+                                                         "Right Click - Erases a pixel", "Help",
+                                              JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
@@ -356,11 +377,10 @@ public class Gui {
     private void clear() {
         for (int y = 0; y < project.getParticleCanvas().getHeight(); y++) {
             for (int x = 0; x < project.getParticleCanvas().getWidth(); x++) {
-                project.getParticleCanvas().setSymbol(x,y, null);
+                project.getParticleCanvas().setSymbol(x, y, null);
             }
         }
     }
-
 
     private Color showColorPicker(JFrame frame) {
         colorChooser.setColor(particle.getColor());
@@ -383,8 +403,10 @@ public class Gui {
         clear();
         project.setParticleCanvas(canvas);
         this.pixelScale = scale;
-        panel.setPreferredSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale  , project.getParticleCanvas().getHeight() * pixelScale ));
-        panel.setSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale , project.getParticleCanvas().getHeight() * pixelScale ));
+        panel.setPreferredSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale,
+                                             project.getParticleCanvas().getHeight() * pixelScale));
+        panel.setSize(new Dimension(project.getParticleCanvas().getWidth() * pixelScale,
+                                    project.getParticleCanvas().getHeight() * pixelScale));
         frame.pack();
     }
 
@@ -407,8 +429,6 @@ public class Gui {
         JPanel dialogPanel = new JPanel();
         dialogPanel.setLayout(new BoxLayout(dialogPanel, BoxLayout.Y_AXIS));
 
-
-
         JLabel widthLabel = new JLabel("Width");
         JLabel heightLabel = new JLabel("Height");
         JLabel scaleLabel = new JLabel("Scale");
@@ -416,28 +436,28 @@ public class Gui {
         JSlider widthSlider = new JSlider(10, 120);
         JSlider heightSlider = new JSlider(10, 120);
         JSlider scaleSlider = new JSlider(4, 32);
-        Dictionary<Integer, JLabel> widthLabelTable =  new Hashtable<>(Map.of(
+        Dictionary<Integer,JLabel> widthLabelTable = new Hashtable<>(Map.of(
             widthSlider.getMinimum(), new JLabel(String.valueOf(widthSlider.getMinimum())),
             widthSlider.getMaximum(), new JLabel(String.valueOf(widthSlider.getMaximum()))
         ));
-        Dictionary<Integer, JLabel> heightLabelTable = new Hashtable<>(Map.of(
+        Dictionary<Integer,JLabel> heightLabelTable = new Hashtable<>(Map.of(
             heightSlider.getMinimum(), new JLabel(String.valueOf(heightSlider.getMinimum())),
             heightSlider.getMaximum(), new JLabel(String.valueOf(heightSlider.getMaximum()))
         ));
-        Dictionary<Integer, JLabel> scaleLabelTable =  new Hashtable<>(Map.of(
+        Dictionary<Integer,JLabel> scaleLabelTable = new Hashtable<>(Map.of(
             scaleSlider.getMinimum(), new JLabel(String.valueOf(scaleSlider.getMinimum())),
             scaleSlider.getMaximum(), new JLabel(String.valueOf(scaleSlider.getMaximum()))
         ));
-        heightSlider.addChangeListener( e -> {
+        heightSlider.addChangeListener(e -> {
             heightLabel.setText("Height %d".formatted(heightSlider.getValue()));
             heightLabel.updateUI();
         });
-        widthSlider.addChangeListener( e -> {
+        widthSlider.addChangeListener(e -> {
             widthLabel.setText("Width %d".formatted(widthSlider.getValue()));
             widthLabel.updateUI();
         });
 
-        scaleSlider.addChangeListener( e -> {
+        scaleSlider.addChangeListener(e -> {
             scaleLabel.setText("Scale %d".formatted(scaleSlider.getValue()));
             scaleLabel.updateUI();
         });

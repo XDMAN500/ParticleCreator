@@ -34,4 +34,5 @@ tasks.named<Jar>("jar") {
     manifest {
         attributes["Main-Class"] = application.mainClass
     }
+    archiveFileName = "ParticleCreator.jar"
 }
